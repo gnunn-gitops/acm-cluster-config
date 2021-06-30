@@ -6,7 +6,7 @@ metadata:
     app: cluster-config
   annotations:
     apps.open-cluster-management.io/github-path: bootstrap/overlays/aws.cluster
-    apps.open-cluster-management.io/github-branch: master
+    apps.open-cluster-management.io/github-branch: main
 spec:
   channel: openshift-gitops/cluster-config
   placement:
