@@ -7,7 +7,10 @@ placementRef:
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-  - name: policy-gitops
+  - name: policy-managed-gitops-operator
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+  - name: policy-sealed-secrets-seed
     kind: Policy
     apiGroup: policy.open-cluster-management.io
 ---

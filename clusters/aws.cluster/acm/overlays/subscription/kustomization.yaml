@@ -1,7 +1,7 @@
 namespace: openshift-gitops
 
 bases:
-- ../../base
+- ../../../../../components/acm/cluster-config/base
 
 resources:
 - subscription.yaml
