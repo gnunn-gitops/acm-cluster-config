@@ -1,0 +1,15 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  name: aws-cluster-cluster-config-subscription
+  labels:
+    app: cluster-config
+  annotations:
+    apps.open-cluster-management.io/github-path: bootstrap/overlays/aws.cluster
+    apps.open-cluster-management.io/github-branch: master
+spec:
+  channel: openshift-gitops/cluster-config
+  placement:
+    clusterSelector:
+      matchLabels:
+        cluster: aws-cluster

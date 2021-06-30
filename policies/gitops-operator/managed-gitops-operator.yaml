@@ -1,0 +1,292 @@
+# Adapted from Andrew Block's example: https://github.com/sabre1041/rhacm-argocd/blob/main/rhacm-managed-argocd/argocd-cluster/policies/managed-argocd.yaml
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-managed-gitops-operator
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-openshift-gitops-namespace
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: openshift-gitops
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-sealed-secrets-namespace
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: sealed-secrets
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-openshift-gitops-subscription
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  name: openshift-gitops-operator
+                  namespace: openshift-operators
+                spec:
+                  channel: stable
+                  config:
+                    env:
+                      - name: DISABLE_DEX
+                        value: 'false'
+                  installPlanApproval: Automatic
+                  name: openshift-gitops-operator
+                  source: redhat-operators
+                  sourceNamespace: openshift-marketplace
+                  startingCSV: openshift-gitops-operator.v1.1.2
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-openshift-gitops-clusterrolebinding
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                kind: ClusterRoleBinding
+                apiVersion: rbac.authorization.k8s.io/v1
+                metadata:
+                  name: openshift-gitops-application-controller-cluster-admin
+                subjects:
+                  - kind: ServiceAccount
+                    name: openshift-gitops-argocd-application-controller
+                    namespace: openshift-gitops
+                roleRef:
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: ClusterRole
+                  name: cluster-admin
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-openshift-gitops-cluster-config-project
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: AppProject
+                metadata:
+                  name: cluster-config
+                  namespace: openshift-gitops
+                spec:
+                  clusterResourceWhitelist:
+                  - group: '*'
+                    kind: '*'
+                  destinations:
+                  - namespace: '*'
+                    server: '*'
+                  sourceRepos:
+                  - '*'
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-openshift-gitops-cluster-config-project
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: AppProject
+                metadata:
+                  name: tenants
+                  namespace: openshift-gitops
+                spec:
+                  clusterResourceWhitelist:
+                  - group: '*'
+                    kind: '*'
+                  destinations:
+                  - namespace: '*'
+                    server: '*'
+                  sourceRepos:
+                  - '*'
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-managed-argocd-clusterrolebinding
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                kind: ArgoCD
+                apiVersion: argoproj.io/v1alpha1
+                metadata:
+                  name: openshift-gitops
+                  namespace: openshift-gitops
+                spec:
+                  applicationInstanceLabelKey: argocd.argoproj.io/instance
+                  dex:
+                    openShiftOAuth: true
+                  ha:
+                    enabled: false
+                  image: quay.io/gnunn/argocd-rhel8
+                  rbac:
+                    defaultPolicy: role:readonly
+                    policy: |
+                      g, system:cluster-admins, role:admin
+                      g, argocdadmins, role:admin
+                      g, argocdusers, role:readonly
+                    scopes: '[groups]'
+                  resourceCustomizations: |
+                    argoproj.io/Application:
+                      health.lua: |
+                        hs = {}
+                        hs.status = "Progressing"
+                        hs.message = ""
+                        if obj.status ~= nil then
+                          if obj.status.health ~= nil then
+                            hs.status = obj.status.health.status
+                            hs.message = obj.status.health.message
+                          end
+                        end
+                        return hs
+                    route.openshift.io/Route:
+                      ignoreDifferences: |
+                        jsonPointers:
+                        - /status/ingress
+                    integreatly.org/GrafanaDataSource:
+                      ignoreDifferences: |
+                        jsonPointers:
+                        - /spec/datasources/0/secureJsonData/httpHeaderValue1
+                    PersistentVolumeClaim:
+                      health.lua: |
+                        hs = {}
+                        if obj.status ~= nil then
+                          if obj.status.phase ~= nil then
+                            if obj.status.phase == "Pending" then
+                              hs.status = "Healthy"
+                              hs.message = obj.status.phase
+                              return hs
+                            end
+                            if obj.status.phase == "Bound" then
+                              hs.status = "Healthy"
+                              hs.message = obj.status.phase
+                              return hs
+                            end
+                          end
+                        end
+                        hs.status = "Progressing"
+                        hs.message = "Waiting for certificate"
+                        return hs
+                    Job:
+                      health.lua: |
+                        hs = {}
+                        if obj.status ~= nil then
+                          if obj.status.active ~= nil then
+                            if obj.status.active == "1" then
+                              hs.status = "Progressing"
+                              hs.message = obj.status.active .. " active job(s)."
+                              return hs
+                            end
+                          end
+                          if obj.status.succeeded ~= nil then
+                            if obj.status.succeeded == 1 then
+                              hs.status = "Healthy"
+                              hs.message = "Job completed successfully."
+                              return hs
+                            end
+                          end
+                        end
+                        hs.status = "Progressing"
+                        hs.message = "Waiting for Job to complete."
+                        return hs
+                  resourceExclusions: |
+                    - apiGroups:
+                      - tekton.dev
+                      clusters:
+                      - '*'
+                      kinds:
+                      - TaskRun
+                      - PipelineRun
+                    - apiGroups:
+                      - compliance.openshift.io
+                      kinds:
+                      - ComplianceCheckResult
+                      - ComplianceRemediation
+                  server:
+                    insecure: true
+                    route:
+                      enabled: true
+                      tls:
+                        insecureEdgeTerminationPolicy: Redirect
+                        termination: edge
+                  version: v1.1.2

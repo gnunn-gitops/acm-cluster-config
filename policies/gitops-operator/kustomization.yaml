@@ -1,0 +1,4 @@
+resources:
+- managed-gitops-operator.yaml
+- sealed-secrets-seed.yaml
+- placement,yaml

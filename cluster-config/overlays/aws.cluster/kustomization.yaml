@@ -1,0 +1,7 @@
+namespace: openshift-gitops
+
+bases:
+- ../../base
+
+resources:
+- subscription.yaml
