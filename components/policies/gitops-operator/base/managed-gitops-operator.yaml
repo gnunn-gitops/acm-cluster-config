@@ -102,7 +102,7 @@ spec:
                 kind: ClusterRoleBinding
                 apiVersion: rbac.authorization.k8s.io/v1
                 metadata:
-                  name: openshift-gitops-application-controller-cluster-admin
+                  name: argocd-application-controller-cluster-admin
                 subjects:
                   - kind: ServiceAccount
                     name: openshift-gitops-argocd-application-controller
@@ -145,7 +145,7 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: policy-managed-openshift-gitops-cluster-config-project
+          name: policy-managed-openshift-gitops-cluster-tenant-project
         spec:
           remediationAction: enforce
           severity: low
@@ -175,7 +175,7 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: policy-managed-argocd-clusterrolebinding
+          name: policy-managed-openshift-gitops-instance
         spec:
           remediationAction: enforce
           severity: low
