@@ -1,0 +1,1 @@
+kustomize build components/policies/gitops-operator/base | oc apply -f -

@@ -1,0 +1,1 @@
+kustomize build clusters/aws.cluster/acm/overlays/subscription | oc apply -f -

@@ -1,9 +1,0 @@
-apiVersion: tower.ansible.com/v1alpha1
-kind: AnsibleJob
-metadata:
-  name: cluster-config-post-notification
-  namespace: openshift-gitops
-spec:
-  job_template_name: Demo Job Template
-  extra_vars:
-    cluster-config-posthook: true
