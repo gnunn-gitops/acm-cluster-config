@@ -10,9 +10,9 @@ metadata:
 spec:
   channel: openshift-gitops/cluster-config
   # Remove this if you are not using Ansible Tower integration
-  hooksecretref:
-    name: tower-admin
+  # hooksecretref:
+  #   name: tower-admin
   placement:
     clusterSelector:
       matchLabels:
-        cluster: aws.cluster
+        name: remote

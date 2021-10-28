@@ -82,7 +82,6 @@ spec:
                   name: openshift-gitops-operator
                   source: redhat-operators
                   sourceNamespace: openshift-marketplace
-                  startingCSV: openshift-gitops-operator.v1.1.2
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
@@ -194,11 +193,11 @@ spec:
                   namespace: openshift-gitops
                 spec:
                   applicationInstanceLabelKey: argocd.argoproj.io/instance
+                  applicationSet: {}
                   dex:
                     openShiftOAuth: true
                   ha:
                     enabled: false
-                  image: quay.io/gnunn/argocd-rhel8
                   rbac:
                     defaultPolicy: role:readonly
                     policy: |
@@ -289,4 +288,3 @@ spec:
                       tls:
                         insecureEdgeTerminationPolicy: Redirect
                         termination: edge
-                  version: v1.1.2
