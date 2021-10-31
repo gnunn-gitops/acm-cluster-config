@@ -35,26 +35,6 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: policy-managed-sealed-secrets-namespace
-        spec:
-          remediationAction: enforce
-          severity: low
-          namespaceSelector:
-            exclude:
-              - kube-*
-            include:
-              - default
-          object-templates:
-            - complianceType: musthave
-              objectDefinition:
-                apiVersion: v1
-                kind: Namespace
-                metadata:
-                  name: sealed-secrets
-    - objectDefinition:
-        apiVersion: policy.open-cluster-management.io/v1
-        kind: ConfigurationPolicy
-        metadata:
           name: policy-managed-openshift-gitops-subscription
         spec:
           remediationAction: enforce
@@ -192,7 +172,7 @@ spec:
                   name: openshift-gitops
                   namespace: openshift-gitops
                 spec:
-                  applicationInstanceLabelKey: argocd.argoproj.io/instance
+                  # applicationInstanceLabelKey: argocd.argoproj.io/instance
                   applicationSet: {}
                   dex:
                     openShiftOAuth: true
